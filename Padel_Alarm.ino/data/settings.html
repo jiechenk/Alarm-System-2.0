@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pengaturan Alarm - Futsal Timer v2.0</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+    .header h2 {
+      margin-bottom: 5px;
+    }
+    .version-info {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    .content {
+      padding: 40px;
+    }
+    
+    .section {
+      border: 2px solid #ecf0f1;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 25px;
+      background: #ffffff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+    .section:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+    }
+    .section h3 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 8px;
+      font-size: 18px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f8f9fa;
+    }
+    .form-group:last-child {
+      border-bottom: none;
+    }
+    
+    label {
+      font-weight: 600;
+      color: #2c3e50;
+      flex: 1;
+      font-size: 14px;
+    }
+    .label-description {
+      font-size: 12px;
+      color: #7f8c8d;
+      font-weight: normal;
+      display: block;
+      margin-top: 4px;
+    }
+    
+    input[type="number"], select {
+      padding: 10px 12px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      width: 120px;
+      transition: all 0.3s;
+      background: white;
+    }
+    input[type="number"]:focus, select:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .checkbox-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      opacity: 0;
+      position: absolute;
+    }
+    .checkbox-custom {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      display: inline-block;
+      position: relative;
+      background: white;
+      transition: all 0.3s;
+    }
+    input[type="checkbox"]:checked + .checkbox-custom {
+      background: #3498db;
+      border-color: #3498db;
+    }
+    input[type="checkbox"]:checked + .checkbox-custom::after {
+      content: '✓';
+      color: white;
+      font-size: 14px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-weight: bold;
+    }
+    
+    .btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s;
+    }
+    .btn:hover::before {
+      left: 100%;
+    }
+    
+    .btn-save {
+      background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    }
+    .btn-save:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+    }
+    .btn-save:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .btn-back {
+      background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+      color: white;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+    }
+    .btn-back:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
+      text-decoration: none;
+      color: white;
+    }
+    
+    .btn-test {
+      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+      color: white;
+      padding: 10px 20px;
+      font-size: 14px;
+      box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+    }
+    .btn-test:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
+    }
+    
+    .info {
+      background: linear-gradient(135deg, #e8f6f3 0%, #d5edf6 100%);
+      border-left: 4px solid #27ae60;
+      padding: 20px;
+      margin: 25px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .info strong {
+      color: #27ae60;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .info ul {
+      margin-left: 20px;
+      color: #2c3e50;
+    }
+    .info li {
+      margin-bottom: 4px;
+    }
+    
+    .actions {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 2px solid #ecf0f1;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      margin: 20px 0;
+      color: #3498db;
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.4s ease;
+      max-width: 350px;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .toast.success { 
+      background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+      box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    }
+    .toast.error { 
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    }
+    
+    .test-section {
+      background: #fff8e6;
+      border: 2px solid #f39c12;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+    .test-section h4 {
+      color: #f39c12;
+      margin-bottom: 10px;
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .container {
+        margin: 10px;
+        border-radius: 10px;
+      }
+      .content {
+        padding: 20px;
+      }
+      .section {
+        padding: 20px;
+      }
+      .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .form-group label {
+        margin-bottom: 5px;
+      }
+      input[type="number"], select {
+        width: 100%;
+        max-width: 200px;
+      }
+      .actions {
+        text-align: center;
+      }
+      .btn {
+        display: block;
+        margin: 10px auto;
+        width: 80%;
+        max-width: 300px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .header {
+        padding: 15px;
+      }
+      .content {
+        padding: 15px;
+      }
+      .section {
+        padding: 15px;
+      }
+      .toast {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>PENGATURAN ALARM SISTEM</h2>
+      <div class="version-info">Futsal Timer System v2.0</div>
+    </div>
+    
+    <div class="loading" id="loadingIndicator">
+      <div class="spinner"></div>
+      <div>Memuat konfigurasi...</div>
+    </div>
+    
+    <div class="content" id="configContent" style="display: none;">
+      <form id="configForm">
+        <div class="section">
+          <h3>⏰ Durasi Alarm (detik)</h3>
+          <div class="form-group">
+            <label>
+              Test Alarm:
+              <span class="label-description">Durasi saat tombol TEST ditekan</span>
+            </label>
+            <input type="number" id="testDuration" min="1" max="30" value="3">
+          </div>
+          <div class="form-group">
+            <label>
+              Warning Alarm:
+              <span class="label-description">Alarm peringatan sebelum waktu habis</span>
+            </label>
+            <input type="number" id="warningDuration" min="1" max="30" value="2">
+          </div>
+          <div class="form-group">
+            <label>
+              Time Up Alarm:
+              <span class="label-description">Alarm saat waktu benar-benar habis</span>
+            </label>
+            <input type="number" id="timeupDuration" min="1" max="60" value="8">
+          </div>
+          
+          <div class="test-section">
+            <h4>🔧 Test Alarm</h4>
+            <p>Klik tombol di bawah untuk menguji alarm pada semua lapangan:</p>
+            <button type="button" class="btn btn-test" onclick="testAllAlarms()" id="testAllBtn">
+              TEST SEMUA ALARM
+            </button>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>⚠️ Pengaturan Warning</h3>
+          <div class="form-group">
+            <label>
+              Warning Time:
+              <span class="label-description">Peringatan berapa detik sebelum habis</span>
+            </label>
+            <select id="warningTime">
+              <option value="60">1 Menit</option>
+              <option value="180">3 Menit</option>
+              <option value="300" selected>5 Menit</option>
+              <option value="600">10 Menit</option>
+              <option value="900">15 Menit</option>
+              <option value="1200">20 Menit</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>
+              Aktifkan Warning Alarm:
+              <span class="label-description">Bunyi peringatan sebelum waktu habis</span>
+            </label>
+            <div class="checkbox-group">
+              <div class="checkbox-wrapper">
+                <input type="checkbox" id="enableWarning" checked>
+                <span class="checkbox-custom"></span>
+              </div>
+              <span>Aktif</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>🔄 Pengaturan Repeat</h3>
+          <div class="form-group">
+            <label>
+              Jumlah Pengulangan:
+              <span class="label-description">Berapa kali alarm berulang</span>
+            </label>
+            <select id="repeatCount">
+              <option value="1">1x</option>
+              <option value="2">2x</option>
+              <option value="3" selected>3x</option>
+              <option value="4">4x</option>
+              <option value="5">5x</option>
+              <option value="6">6x</option>
+              <option value="8">8x</option>
+              <option value="10">10x</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>
+              Jeda Antar Pengulangan:
+              <span class="label-description">Interval waktu antar pengulangan</span>
+            </label>
+            <select id="repeatInterval">
+              <option value="1">1 detik</option>
+              <option value="2" selected>2 detik</option>
+              <option value="3">3 detik</option>
+              <option value="4">4 detik</option>
+              <option value="5">5 detik</option>
+              <option value="10">10 detik</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>
+              Aktifkan Repeat Alarm:
+              <span class="label-description">Alarm berulang atau sekali saja</span>
+            </label>
+            <div class="checkbox-group">
+              <div class="checkbox-wrapper">
+                <input type="checkbox" id="enableRepeating" checked>
+                <span class="checkbox-custom"></span>
+              </div>
+              <span>Aktif</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info">
+          <strong>ℹ️ Informasi Penting:</strong>
+          <ul>
+            <li><strong>Test Alarm:</strong> Durasi saat klik tombol "TEST" pada halaman utama</li>
+            <li><strong>Warning Alarm:</strong> Alarm peringatan yang bunyi sebelum waktu habis</li>
+            <li><strong>Time Up Alarm:</strong> Alarm yang bunyi saat waktu benar-benar habis</li>
+            <li><strong>Repeat:</strong> Alarm akan berulang sesuai pengaturan dengan jeda tertentu</li>
+            <li><strong>GPIO Pins:</strong> Relay terpasang di GPIO 4, 5, 18, dan 19</li>
+            <li>Semua pengaturan akan tersimpan secara permanen di memori ESP32</li>
+          </ul>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn-save" onclick="saveConfig()" id="saveBtn">
+            💾 SIMPAN PENGATURAN
+          </button>
+          <a href="/" class="btn btn-back">🏠 KEMBALI KE UTAMA</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let configLoaded = false;
+    
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 4000);
+    }
+    
+    function showLoading(show = true) {
+      const loading = document.getElementById('loadingIndicator');
+      const content = document.getElementById('configContent');
+      
+      if (show) {
+        loading.style.display = 'block';
+        content.style.display = 'none';
+      } else {
+        loading.style.display = 'none';
+        content.style.display = 'block';
+      }
+    }
+    
+    async function fetchWithTimeout(url, options = {}) {
+      const timeout = options.timeout || 8000;
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
+      try {
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        return response;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
+    }
+    
+    // Load current configuration
+    async function loadConfig() {
+      showLoading(true);
+      
+      try {
+        const response = await fetchWithTimeout('/config');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        // Populate form fields
+        document.getElementById('testDuration').value = data.testDuration || 3;
+        document.getElementById('warningDuration').value = data.warningDuration || 2;
+        document.getElementById('timeupDuration').value = data.timeupDuration || 8;
+        document.getElementById('warningTime').value = data.warningTime || 300;
+        document.getElementById('repeatCount').value = data.repeatCount || 3;
+        document.getElementById('repeatInterval').value = data.repeatInterval || 2;
+        document.getElementById('enableWarning').checked = data.enableWarning !== false;
+        document.getElementById('enableRepeating').checked = data.enableRepeating !== false;
+        
+        configLoaded = true;
+        showLoading(false);
+        showToast('Konfigurasi berhasil dimuat', 'success');
+        
+      } catch (error) {
+        console.error('Error loading config:', error);
+        showLoading(false);
+        showToast(`Gagal memuat konfigurasi: ${error.message}`, 'error');
+      }
+    }
+    
+    async function saveConfig() {
+      if (!configLoaded) {
+        showToast('Tunggu hingga konfigurasi selesai dimuat', 'error');
+        return;
+      }
+      
+      const saveBtn = document.getElementById('saveBtn');
+      const originalText = saveBtn.textContent;
+      
+      // Disable button and show loading
+      saveBtn.disabled = true;
+      saveBtn.textContent = '💾 MENYIMPAN...';
+      
+      try {
+        const config = {
+          testDuration: parseInt(document.getElementById('testDuration').value),
+          warningDuration: parseInt(document.getElementById('warningDuration').value),
+          timeupDuration: parseInt(document.getElementById('timeupDuration').value),
+          warningTime: parseInt(document.getElementById('warningTime').value),
+          repeatCount: parseInt(document.getElementById('repeatCount').value),
+          repeatInterval: parseInt(document.getElementById('repeatInterval').value),
+          enableWarning: document.getElementById('enableWarning').checked,
+          enableRepeating: document.getElementById('enableRepeating').checked
+        };
+        
+        // Validate configuration
+        if (config.testDuration < 1 || config.testDuration > 30) {
+          throw new Error('Test duration harus antara 1-30 detik');
+        }
+        if (config.warningDuration < 1 || config.warningDuration > 30) {
+          throw new Error('Warning duration harus antara 1-30 detik');
+        }
+        if (config.timeupDuration < 1 || config.timeupDuration > 60) {
+          throw new Error('Time up duration harus antara 1-60 detik');
+        }
+        if (config.warningTime < 30 || config.warningTime > 1800) {
+          throw new Error('Warning time harus antara 30-1800 detik');
+        }
+        
+        const response = await fetchWithTimeout('/save-config', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(config),
+          timeout: 10000
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.text();
+        showToast('🎉 Pengaturan berhasil disimpan!', 'success');
+        
+      } catch (error) {
+        console.error('Error saving config:', error);
+        showToast(`❌ Gagal menyimpan: ${error.message}`, 'error');
+      } finally {
+        // Restore button
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+      }
+    }
+    
+    async function testAllAlarms() {
+      const testBtn = document.getElementById('testAllBtn');
+      const originalText = testBtn.textContent;
+      
+      testBtn.disabled = true;
+      testBtn.textContent = '🔊 TESTING...';
+      
+      try {
+        const promises = [];
+        
+        // Test all 4 fields simultaneously
+        for (let i = 0; i < 4; i++) {
+          promises.push(
+            fetchWithTimeout(`/alarm?lap=${i}`, { timeout: 5000 })
+              .catch(err => ({ error: true, field: i + 1, message: err.message }))
+          );
+        }
+        
+        const results = await Promise.all(promises);
+        
+        let successCount = 0;
+        let errorFields = [];
+        
+        results.forEach((result, index) => {
+          if (result.error) {
+            errorFields.push(result.field || index + 1);
+          } else {
+            successCount++;
+          }
+        });
+        
+        if (successCount === 4) {
+          showToast('🔊 Test alarm berhasil pada semua lapangan!', 'success');
+        } else if (successCount > 0) {
+          showToast(`🔊 Test berhasil pada ${successCount}/4 lapangan. Error: Field ${errorFields.join(', ')}`, 'error');
+        } else {
+          showToast('❌ Test alarm gagal pada semua lapangan', 'error');
+        }
+        
+      } catch (error) {
+        console.error('Error testing alarms:', error);
+        showToast(`❌ Test alarm gagal: ${error.message}`, 'error');
+      } finally {
+        setTimeout(() => {
+          testBtn.disabled = false;
+          testBtn.textContent = originalText;
+        }, 4000); // Wait for alarms to finish
+      }
+    }
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Settings page v2.0 - Initialized');
+      loadConfig();
+    });
+    
+    // Handle form validation
+    document.getElementById('configForm').addEventListener('input', function(e) {
+      if (e.target.type === 'number') {
+        const input = e.target;
+        const value = parseInt(input.value);
+        const min = parseInt(input.min);
+        const max = parseInt(input.max);
+        
+        if (value < min) {
+          input.style.borderColor = '#e74c3c';
+        } else if (value > max) {
+          input.style.borderColor = '#e74c3c';
+        } else {
+          input.style.borderColor = '#27ae60';
+        }
+      }
+    });
+    
+    // Handle page visibility for connection status
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden && !configLoaded) {
+        loadConfig(); // Retry loading if page becomes visible and config not loaded
+      }
+    });
+  </script>
+</body>
+</html>

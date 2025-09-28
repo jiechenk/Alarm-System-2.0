@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Futsal Timer System v2.0</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 10px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .header h2 {
+      margin: 0;
+      font-size: clamp(18px, 4vw, 24px);
+    }
+    .version-info {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    .settings-btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+    .settings-btn:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+    }
+    .status-bar {
+      background: #ecf0f1;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #2c3e50;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #27ae60;
+      animation: pulse 2s infinite;
+      box-shadow: 0 0 10px rgba(39, 174, 96, 0.5);
+    }
+    .status-dot.offline {
+      background: #e74c3c;
+      animation: none;
+      box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+    }
+    .system-info {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+    
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+      padding: 20px;
+    }
+    table { 
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    th, td { 
+      padding: 15px 10px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+      vertical-align: middle;
+    }
+    th {
+      background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+      color: white;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    tr:nth-child(even) {
+      background: #f8f9fa;
+    }
+    tr:hover {
+      background: #e3f2fd;
+      transform: scale(1.01);
+      transition: all 0.2s;
+    }
+    
+    /* Button Styles */
+    button { 
+      padding: 8px 12px;
+      font-size: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+      margin: 2px;
+      min-width: 65px;
+      position: relative;
+      overflow: hidden;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .btn-start {
+      background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+      color: white;
+    }
+    .btn-stop {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: white;
+    }
+    .btn-alarm {
+      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+      color: white;
+    }
+    .btn-alarm.active {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      animation: pulse 1s infinite;
+    }
+    
+    select { 
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      background: white;
+      min-width: 120px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    select:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    }
+    
+    /* Status Styles */
+    .status-idle { 
+      color: #7f8c8d; 
+      font-weight: bold; 
+    }
+    .status-running { 
+      color: #27ae60; 
+      font-weight: bold;
+      animation: pulse 2s infinite;
+    }
+    .status-warning { 
+      color: #f39c12; 
+      font-weight: bold; 
+      animation: pulse 1s infinite;
+      text-shadow: 0 0 10px rgba(243, 156, 18, 0.5);
+    }
+    .status-finished { 
+      color: #e74c3c; 
+      font-weight: bold; 
+      animation: blink 1s infinite;
+      text-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+    }
+    
+    .timer-display {
+      font-family: 'Courier New', monospace;
+      font-size: 18px;
+      font-weight: bold;
+      color: #2c3e50;
+      min-width: 90px;
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .timer-warning {
+      color: #f39c12 !important;
+      background: #fff3cd !important;
+      animation: pulse 1s infinite;
+    }
+    .timer-finished {
+      color: #e74c3c !important;
+      background: #f8d7da !important;
+      animation: blink 1s infinite;
+    }
+    
+    /* Loading Spinner */
+    .spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #3498db;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      z-index: 1000;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.4s ease;
+      max-width: 350px;
+      word-wrap: break-word;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .toast.success { 
+      background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+      box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+    }
+    .toast.error { 
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    }
+    .toast.warning { 
+      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+      box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+    }
+    
+    /* Animations */
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.3; }
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Error State */
+    .error-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #e74c3c;
+    }
+    .retry-btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 15px;
+      transition: all 0.3s;
+    }
+    .retry-btn:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+      }
+      .status-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .table-container {
+        padding: 10px;
+      }
+      table {
+        font-size: 12px;
+        min-width: 600px;
+      }
+      th, td {
+        padding: 10px 6px;
+      }
+      button {
+        padding: 6px 8px;
+        font-size: 11px;
+        min-width: 55px;
+      }
+      .timer-display {
+        font-size: 14px;
+        padding: 6px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .header h2 {
+        font-size: 16px;
+      }
+      table {
+        min-width: 500px;
+        font-size: 11px;
+      }
+      th, td {
+        padding: 8px 4px;
+      }
+      button {
+        padding: 4px 6px;
+        font-size: 10px;
+        min-width: 50px;
+      }
+      .timer-display {
+        font-size: 12px;
+        padding: 4px;
+      }
+      .toast {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h2>FUTSAL TIMER SYSTEM</h2>
+        <div class="version-info">v2.0 - Enhanced Edition</div>
+      </div>
+      <a href="/settings" class="settings-btn">⚙️ PENGATURAN ALARM</a>
+    </div>
+    
+    <div class="status-bar">
+      <div class="connection-status">
+        <div class="status-dot" id="connectionDot"></div>
+        <span id="connectionText">Terhubung</span>
+        <span id="clientCount" class="system-info"></span>
+      </div>
+      <div>
+        <span id="lastUpdate" class="system-info">Menunggu data...</span>
+        <span id="systemInfo" class="system-info"></span>
+      </div>
+    </div>
+    
+    <div class="table-container">
+      <table id="timerTable">
+        <thead>
+          <tr>
+            <th>Lapangan</th>
+            <th>Status</th>
+            <th>Countdown</th>
+            <th>Durasi</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Field 1</strong></td>
+            <td><span id="status1" class="status-idle">Idle</span></td>
+            <td><span id="timer1" class="timer-display">--:--:--</span></td>
+            <td>
+              <select id="durasi1">
+                <option value="1800">30 Menit</option>
+                <option value="3600" selected>60 Menit</option>
+                <option value="5400">90 Menit</option>
+                <option value="7200">120 Menit</option>
+                <option value="10800">180 Menit</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn-start" onclick="startTimer(1)" id="startBtn1">START</button>
+              <button class="btn-stop" onclick="stopTimer(1)" id="stopBtn1">STOP</button>
+              <button class="btn-alarm" onclick="testAlarm(1)" id="alarmBtn1">TEST</button>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Field 2</strong></td>
+            <td><span id="status2" class="status-idle">Idle</span></td>
+            <td><span id="timer2" class="timer-display">--:--:--</span></td>
+            <td>
+              <select id="durasi2">
+                <option value="1800">30 Menit</option>
+                <option value="3600" selected>60 Menit</option>
+                <option value="5400">90 Menit</option>
+                <option value="7200">120 Menit</option>
+                <option value="10800">180 Menit</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn-start" onclick="startTimer(2)" id="startBtn2">START</button>
+              <button class="btn-stop" onclick="stopTimer(2)" id="stopBtn2">STOP</button>
+              <button class="btn-alarm" onclick="testAlarm(2)" id="alarmBtn2">TEST</button>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Field 3</strong></td>
+            <td><span id="status3" class="status-idle">Idle</span></td>
+            <td><span id="timer3" class="timer-display">--:--:--</span></td>
+            <td>
+              <select id="durasi3">
+                <option value="1800">30 Menit</option>
+                <option value="3600" selected>60 Menit</option>
+                <option value="5400">90 Menit</option>
+                <option value="7200">120 Menit</option>
+                <option value="10800">180 Menit</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn-start" onclick="startTimer(3)" id="startBtn3">START</button>
+              <button class="btn-stop" onclick="stopTimer(3)" id="stopBtn3">STOP</button>
+              <button class="btn-alarm" onclick="testAlarm(3)" id="alarmBtn3">TEST</button>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Field 4</strong></td>
+            <td><span id="status4" class="status-idle">Idle</span></td>
+            <td><span id="timer4" class="timer-display">--:--:--</span></td>
+            <td>
+              <select id="durasi4">
+                <option value="1800">30 Menit</option>
+                <option value="3600" selected>60 Menit</option>
+                <option value="5400">90 Menit</option>
+                <option value="7200">120 Menit</option>
+                <option value="10800">180 Menit</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn-start" onclick="startTimer(4)" id="startBtn4">START</button>
+              <button class="btn-stop" onclick="stopTimer(4)" id="stopBtn4">STOP</button>
+              <button class="btn-alarm" onclick="testAlarm(4)" id="alarmBtn4">TEST</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div id="errorState" class="error-state" style="display: none;">
+        <h3>⚠️ Koneksi Bermasalah</h3>
+        <p>Tidak dapat terhubung ke sistem timer. Silakan periksa koneksi WiFi Anda.</p>
+        <button class="retry-btn" onclick="retryConnection()">🔄 Coba Lagi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let isOnline = true;
+    let lastUpdateTime = new Date();
+    let updateInterval;
+    let retryCount = 0;
+    let maxRetries = 3;
+    let systemData = {};
+    
+    // Configuration
+    const CONFIG = {
+      UPDATE_INTERVAL: 1000,        // 1 second when online
+      OFFLINE_INTERVAL: 5000,       // 5 seconds when offline
+      REQUEST_TIMEOUT: 8000,        // 8 seconds timeout
+      TOAST_DURATION: 4000,         // 4 seconds toast display
+      MAX_RETRY_ATTEMPTS: 3
+    };
+    
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast ${type} show`;
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, CONFIG.TOAST_DURATION);
+    }
+    
+    function updateConnectionStatus(online) {
+      const dot = document.getElementById('connectionDot');
+      const text = document.getElementById('connectionText');
+      const errorState = document.getElementById('errorState');
+      const timerTable = document.getElementById('timerTable');
+      
+      if (online) {
+        dot.classList.remove('offline');
+        text.textContent = 'Terhubung';
+        errorState.style.display = 'none';
+        timerTable.style.display = 'table';
+        isOnline = true;
+        retryCount = 0;
+      } else {
+        dot.classList.add('offline');
+        text.textContent = 'Terputus';
+        if (retryCount >= maxRetries) {
+          errorState.style.display = 'block';
+          timerTable.style.display = 'none';
+        }
+        isOnline = false;
+      }
+    }
+    
+    function updateLastUpdateTime() {
+      const now = new Date();
+      document.getElementById('lastUpdate').textContent = 
+        'Update: ' + now.toLocaleTimeString('id-ID');
+    }
+    
+    function updateSystemInfo() {
+      if (systemData.connectedClients !== undefined) {
+        document.getElementById('clientCount').textContent = 
+          `(${systemData.connectedClients} klien)`;
+      }
+      
+      if (systemData.freeHeap) {
+        const freeHeapKB = Math.round(systemData.freeHeap / 1024);
+        document.getElementById('systemInfo').textContent = 
+          `| RAM: ${freeHeapKB}KB`;
+      }
+    }
+    
+    function setButtonLoading(buttonId, loading) {
+      const btn = document.getElementById(buttonId);
+      if (!btn) {
+        console.error(`Button ${buttonId} tidak ditemukan`);
+        return;
+      }
+      
+      if (loading) {
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.dataset.originalText = originalText;
+        btn.innerHTML = originalText + '<div class="spinner"></div>';
+      } else {
+        btn.disabled = false;
+        const originalText = btn.dataset.originalText || btn.textContent;
+        btn.textContent = originalText.replace(/\s*<div class="spinner"><\/div>/, '');
+        delete btn.dataset.originalText;
+      }
+    }
+    
+    // Enhanced fetch with timeout and retry
+    async function fetchWithTimeout(url, options = {}) {
+      const timeout = options.timeout || CONFIG.REQUEST_TIMEOUT;
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
+      try {
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        return response;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
+    }
+    
+    async function updateStatus() {
+      try {
+        const response = await fetchWithTimeout('/status');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        updateConnectionStatus(true);
+        updateLastUpdateTime();
+        
+        // Update timer displays
+        for (let i = 1; i <= 4; i++) {
+          const lapanganData = data[`lapangan${i}`];
+          if (!lapanganData) {
+            console.warn(`Data lapangan ${i} tidak ditemukan`);
+            continue;
+          }
+          
+          updateFieldDisplay(i, lapanganData);
+        }
+        
+        // Get system info
+        fetchSystemInfo();
+        
+      } catch (error) {
+        retryCount++;
+        console.error(`Status update failed (attempt ${retryCount}):`, error.message);
+        
+        if (retryCount >= maxRetries) {
+          updateConnectionStatus(false);
+          if (isOnline) {
+            showToast(`Koneksi gagal: ${error.message}`, 'error');
+          }
+        }
+      }
+    }
+    
+    function updateFieldDisplay(fieldNum, data) {
+      const statusEl = document.getElementById(`status${fieldNum}`);
+      const timerEl = document.getElementById(`timer${fieldNum}`);
+      const startBtn = document.getElementById(`startBtn${fieldNum}`);
+      const stopBtn = document.getElementById(`stopBtn${fieldNum}`);
+      
+      if (!statusEl || !timerEl || !startBtn || !stopBtn) {
+        console.error(`Elements untuk field ${fieldNum} tidak ditemukan`);
+        return;
+      }
+      
+      // Update status
+      statusEl.textContent = data.status || 'Unknown';
+      statusEl.className = `status-${data.statusClass || 'idle'}`;
+      
+      // Update timer display
+      timerEl.textContent = data.timeRemaining || '--:--:--';
+      timerEl.className = 'timer-display';
+      
+      if (data.statusClass === 'warning') {
+        timerEl.classList.add('timer-warning');
+      } else if (data.statusClass === 'finished') {
+        timerEl.classList.add('timer-finished');
+      }
+      
+      // Update button states
+      const isRunning = data.statusClass === 'running' || data.statusClass === 'warning';
+      const isFinished = data.statusClass === 'finished';
+      
+      startBtn.disabled = isRunning;
+      stopBtn.disabled = !isRunning && !isFinished;
+    }
+    
+    async function fetchSystemInfo() {
+      try {
+        const response = await fetchWithTimeout('/info');
+        if (response.ok) {
+          systemData = await response.json();
+          updateSystemInfo();
+        }
+      } catch (error) {
+        // Silent fail untuk system info
+      }
+    }
+    
+    async function startTimer(lapangan) {
+      const durasiEl = document.getElementById(`durasi${lapangan}`);
+      const buttonId = `startBtn${lapangan}`;
+      
+      if (!durasiEl) {
+        showToast('Error: Element durasi tidak ditemukan', 'error');
+        return;
+      }
+      
+      const durasi = parseInt(durasiEl.value);
+      if (!durasi || durasi <= 0) {
+        showToast('Error: Durasi tidak valid', 'error');
+        return;
+      }
+      
+      setButtonLoading(buttonId, true);
+      
+      try {
+        const response = await fetchWithTimeout(`/start?lap=${lapangan-1}&durasi=${durasi}`);
+        
+        if (!response.ok) {
+          throw new Error(`Gagal memulai timer: ${response.statusText}`);
+        }
+        
+        showToast(`Timer Field ${lapangan} dimulai (${Math.round(durasi/60)} menit)`, 'success');
+        updateStatus(); // Immediate update
+        
+      } catch (error) {
+        console.error('Error starting timer:', error);
+        showToast(`Gagal memulai timer: ${error.message}`, 'error');
+      } finally {
+        setButtonLoading(buttonId, false);
+      }
+    }
+    
+    async function stopTimer(lapangan) {
+      if (!confirm(`Yakin ingin menghentikan timer Field ${lapangan}?`)) {
+        return;
+      }
+      
+      const buttonId = `stopBtn${lapangan}`;
+      setButtonLoading(buttonId, true);
+      
+      try {
+        const response = await fetchWithTimeout(`/stop?lap=${lapangan-1}`);
+        
+        if (!response.ok) {
+          throw new Error(`Gagal menghentikan timer: ${response.statusText}`);
+        }
+        
+        showToast(`Timer Field ${lapangan} dihentikan`, 'warning');
+        updateStatus(); // Immediate update
+        
+      } catch (error) {
+        console.error('Error stopping timer:', error);
+        showToast(`Gagal menghentikan timer: ${error.message}`, 'error');
+      } finally {
+        setButtonLoading(buttonId, false);
+      }
+    }
+    
+    async function testAlarm(lapangan) {
+      const buttonId = `alarmBtn${lapangan}`;
+      const btn = document.getElementById(buttonId);
+      
+      if (!btn) {
+        showToast('Error: Button tidak ditemukan', 'error');
+        return;
+      }
+      
+      btn.classList.add('active');
+      btn.disabled = true;
+      
+      try {
+        const response = await fetchWithTimeout(`/alarm?lap=${lapangan-1}`);
+        
+        if (!response.ok) {
+          throw new Error(`Gagal test alarm: ${response.statusText}`);
+        }
+        
+        showToast(`Test alarm Field ${lapangan} aktif`, 'success');
+        
+      } catch (error) {
+        console.error('Error testing alarm:', error);
+        showToast(`Gagal test alarm: ${error.message}`, 'error');
+      } finally {
+        setTimeout(() => {
+          btn.classList.remove('active');
+          btn.disabled = false;
+        }, 3500); // Slightly longer than alarm duration
+      }
+    }
+    
+    function retryConnection() {
+      retryCount = 0;
+      updateConnectionStatus(true);
+      updateStatus();
+      showToast('Mencoba menghubung ulang...', 'warning');
+    }
+    
+    function startAutoRefresh() {
+      if (updateInterval) {
+        clearInterval(updateInterval);
+      }
+      
+      const interval = isOnline ? CONFIG.UPDATE_INTERVAL : CONFIG.OFFLINE_INTERVAL;
+      updateInterval = setInterval(updateStatus, interval);
+    }
+    
+    // Handle page visibility changes
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        if (updateInterval) {
+          clearInterval(updateInterval);
+        }
+      } else {
+        startAutoRefresh();
+        updateStatus(); // Immediate update when page becomes visible
+      }
+    });
+    
+    // Handle online/offline events
+    window.addEventListener('online', function() {
+      showToast('Koneksi internet pulih', 'success');
+      retryConnection();
+    });
+    
+    window.addEventListener('offline', function() {
+      updateConnectionStatus(false);
+      showToast('Koneksi internet terputus', 'error');
+    });
+    
+    // Initialize application
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Futsal Timer System v2.0 - Client initialized');
+      updateStatus();
+      startAutoRefresh();
+    });
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', function() {
+      if (updateInterval) {
+        clearInterval(updateInterval);
+      }
+    });
+  </script>
+</body>
+</html>
